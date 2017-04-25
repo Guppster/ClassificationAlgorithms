@@ -128,9 +128,51 @@ def CoolPlot(df,Name_x,Name_y):       # no labels
     plt.xlabel('Predicted label')
 
 
+#Plot some stuff with our new functions
 NiceHist('Principal',df)
 
 NiceHist('terms',df)
 
 NiceHist('age',df)
+
+CoolPlot(df,'Principal','age')
+
+#PreProcess some data (Feature selection / extraction)
+df['dayofweek']=df['effective_date'].dt.dayofweek
+NiceHist('dayofweek',df)
+
+CoolPlot(df,'dayofweek','terms')
+
+#These graphs reveal that people who get the loan at the end of the week, dont pay it off
+
+#Use feature binarization to set a threshold value of less than day 4 of the week
+df['weekend']=df['dayofweek'].apply(lambda x: 1 if (x>3)  else 0)
+df.head()
+
+#Checking gender trends
+df.groupby(['Gender'])['loan_status'].value_counts(normalize=True)
+
+#Checkin education trends
+df.groupby(['education'])['loan_status'].value_counts(normalize=True)
+
+#PreProcess gender values (0 for male, 1 for female)
+df['Gender'].replace(to_replace=['male','female'], value=[0,1],inplace=True)
+df.head()
+
+df[['Principal','terms','age','Gender','education']].head()
+
+#Convert categorical variables to binary variables and append to Data Frame
+Feature=df[['Principal','terms','age','Gender','weekend']]
+Feature=pd.concat([Feature,pd.get_dummies(df['education'])], axis=1)
+Feature.drop(['Master or Above'], axis = 1,inplace=True)
+Feature.head()
+
+#Define a feature set X
+X=Feature
+X[0:5]
+
+#Define lables
+y=df['loan_status'].values
+y[0:5]
+
 
