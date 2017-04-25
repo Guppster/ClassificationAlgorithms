@@ -9,6 +9,7 @@ from sklearn import preprocessing
 from sklearn.cross_validation import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import confusion_matrix
+from sklearn.linear_model import LogisticRegression
 %matplotlib inline
 
 # Load Data from CSV file
@@ -236,3 +237,51 @@ print( "The best accuracy was with", mean_acc.max(), "with k=", mean_acc.argmax(
 
 plt.figure()
 plot_confusion_matrix(ConfustionMx[mean_acc.argmax()], classes=['PAIDOFF','COLLECTION' ],title='Confusion matrix, with normalization',normalize=True)
+
+#Logistic Regression
+
+#Build model
+LR = LogisticRegression(C=0.01).fit(X_train,y_train)
+LR
+
+#Perdict
+yhat= LR.predict(X_test)
+acc=np.mean(yhat==y_test)
+acc
+
+#Determine model parameters and model accuracy
+Regularization_Inv=[0.00001,0.1,1,100]
+Length=len(Regularization_Inv)
+mean_acc=np.zeros((Length))
+std_acc=np.zeros((Length))
+ConfustionMx=[];
+
+
+for Reg,n in zip(Regularization_Inv,range(0,Length)):
+    
+    LR = LogisticRegression(C=Reg).fit(X_train,y_train)
+    yhat=LR.predict(X_test)
+    mean_acc[n]=np.mean(yhat==y_test);
+    
+    
+    std_acc[n]=np.std(yhat==y_test)/np.sqrt(yhat.shape[0])
+    ConfustionMx.append(confusion_matrix(yhat,y_test,labels=['PAIDOFF','COLLECTION' ]))
+mean_acc 
+
+#Plot Results
+plt.plot(Regularization_Inv,mean_acc,'g')
+plt.fill_between(Regularization_Inv,mean_acc - 3 * std_acc,mean_acc + 3 * std_acc, alpha=0.10)
+plt.legend(('Accuracy ', '+/- 3xstd'))
+plt.ylabel('Accuracy ')
+plt.xlabel('Number of Nabors (K)')
+plt.tight_layout()
+
+#Display Best
+print( "The best accuracy was for Logistic regression", mean_acc.max()) 
+
+plt.figure()
+plot_confusion_matrix(ConfustionMx[mean_acc.argmax()], classes=['PAIDOFF','COLLECTION' ],title='Confusion matrix, with normalization',normalize=True)
+plt.show()
+
+
+
