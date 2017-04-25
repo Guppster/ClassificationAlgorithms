@@ -7,6 +7,8 @@ import numpy as np
 import matplotlib.ticker as ticker
 from sklearn import preprocessing
 from sklearn.cross_validation import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import confusion_matrix
 %matplotlib inline
 
 # Load Data from CSV file
@@ -175,4 +177,62 @@ X[0:5]
 y=df['loan_status'].values
 y[0:5]
 
+#Normalize Data
+X= preprocessing.StandardScaler().fit(X).transform(X)
+X[0:5]
 
+#Train Test Split
+X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.2, random_state=4)
+print 'Train set:', X_train.shape,  y_train.shape
+print 'Test set:', X_test.shape,  y_test.shape
+
+#Start with the actual Classifcation
+
+#K Nearest Neighbor (K-NN)
+
+#Training
+
+k = 3
+
+#Train Model and Predict  
+neigh = KNeighborsClassifier(n_neighbors=k).fit(X_train,y_train)
+
+#Predicting
+yhat=neigh.predict(X_test)
+yhat[0:5]
+
+#Evalute how accurate the prediction was
+np.mean(yhat==y_test)
+
+#Testing other values of K
+Ks=7
+mean_acc=np.zeros((Ks-1))
+std_acc=np.zeros((Ks-1))
+ConfustionMx=[];
+
+for n in range(1,Ks):
+    
+    neigh = KNeighborsClassifier(n_neighbors=n).fit(X_train,y_train)
+    yhat=neigh.predict(X_test)
+    
+    mean_acc[n-1]=np.mean(yhat==y_test);
+    
+    std_acc[n-1]=np.std(yhat==y_test)/np.sqrt(yhat.shape[0])
+    ConfustionMx.append(confusion_matrix(yhat,y_test,labels=['PAIDOFF','COLLECTION' ]))
+
+mean_acc
+
+#Plot model accuracy for different K
+plt.plot(range(1,Ks),mean_acc,'g')
+plt.fill_between(range(1,Ks),mean_acc - 1 * std_acc,mean_acc + 1 * std_acc, alpha=0.10)
+plt.legend(('Accuracy ', '+/- 3xstd'))
+plt.ylabel('Accuracy ')
+plt.xlabel('Number of Nabors (K)')
+plt.tight_layout()
+plt.show()
+
+#Display Best
+print( "The best accuracy was with", mean_acc.max(), "with k=", mean_acc.argmax()+1) 
+
+plt.figure()
+plot_confusion_matrix(ConfustionMx[mean_acc.argmax()], classes=['PAIDOFF','COLLECTION' ],title='Confusion matrix, with normalization',normalize=True)
