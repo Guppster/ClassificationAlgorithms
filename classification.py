@@ -10,6 +10,8 @@ from sklearn.cross_validation import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import confusion_matrix
 from sklearn.linear_model import LogisticRegression
+from sklearn import svm 
+import itertools
 %matplotlib inline
 
 # Load Data from CSV file
@@ -281,7 +283,40 @@ print( "The best accuracy was for Logistic regression", mean_acc.max())
 
 plt.figure()
 plot_confusion_matrix(ConfustionMx[mean_acc.argmax()], classes=['PAIDOFF','COLLECTION' ],title='Confusion matrix, with normalization',normalize=True)
-plt.show()
 
+#Support Vector Machines
+
+Gama=[0.001,0.1,1,10]
+Con=[0.01,0.1,1,10]
+mean_acc=np.zeros((len(Gama)*len(Con)))
+n=0
+
+#Train
+SVMobject= svm.SVC(gamma=0.1,C=1).fit(X_train,y_train)
+SVMobject
+
+#Perdict
+yhat=SVMobject.predict(X_test)
+yhat[0:5]
+
+#Evaluation
+acc=np.mean(yhat==y_test)
+acc
+
+#Find the best parameters for SVM
+for Par in itertools.product(Gama,Con):
+
+        SVMobject= svm.SVC(gamma=Par[0],C=Par[1]).fit(X_train,y_train)
+        yhat=SVMobject.predict(X_test)
+        
+        mean_acc[n]=np.mean(yhat==y_test);
+        ConfustionMx.append(confusion_matrix(yhat,y_test,labels=['PAIDOFF','COLLECTION' ]))
+        n=n+1
+
+#Display Best
+print( "The best accuracy was", mean_acc.max()) 
+
+plt.figure()
+plot_confusion_matrix(ConfustionMx[mean_acc.argmax()], classes=['PAIDOFF','COLLECTION' ],title='Confusion matrix, with normalization',normalize=True)
 
 
